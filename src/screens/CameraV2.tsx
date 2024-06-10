@@ -344,14 +344,7 @@ const CameraV2 = () => {
                     ...faceDetectionOptions,
                 }}
             />}
-            <Pressable style={styles.container} onPress={onPress}>
-                <View style={[styles.playPauseBtn, recording && styles.recording]}>
-                    {loading ? <ActivityIndicator color={'white'} size={'large'} />
-                        : <View style={styles.stopIcon} />}
-                </View>
-                <Text style={styles.durationText}>{moment.utc(duration * 1000).format('mm:ss')}</Text>
-            </Pressable>
-            {/* <Animated.View style={animatedStyle} />
+            <Animated.View style={animatedStyle} />
             <Animated.View style={leftCheekAnimatedStyle} />
             <Animated.View style={leftEarAnimatedStyle} />
             <Animated.View style={leftEyeAnimatedStyle} />
@@ -361,7 +354,15 @@ const CameraV2 = () => {
             <Animated.View style={noseBaseAnimatedStyle} />
             <Animated.View style={rightCheekAnimatedStyle} />
             <Animated.View style={rightEarAnimatedStyle} />
-            <Animated.View style={rightEyeAnimatedStyle} /> */}
+            <Animated.View style={rightEyeAnimatedStyle} />
+            <Pressable style={styles.container} onPress={onPress}>
+                <View style={[styles.playPauseBtn, recording && styles.recording]}>
+                    {loading ? <ActivityIndicator color={'white'} size={'large'} />
+                        : <View style={styles.stopIcon} />}
+                </View>
+                <Text style={styles.durationText}>{moment.utc(duration * 1000).format('mm:ss')}</Text>
+            </Pressable>
+
         </>
     )
 }
@@ -383,7 +384,8 @@ const styles = StyleSheet.create({
         position: 'absolute',
         alignSelf: 'center',
         justifyContent: 'center',
-        alignItems: 'center'
+        alignItems: 'center',
+        zIndex: 99
     },
     recording: {
         backgroundColor: 'transparent',
