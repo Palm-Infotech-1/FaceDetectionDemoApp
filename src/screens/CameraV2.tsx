@@ -5,6 +5,7 @@ import { Camera as VisionCamera, Frame, useCameraDevice } from 'react-native-vis
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated'
 const { height: sh, width: sw } = Dimensions.get('screen');
 import mime from 'mime';
+import moment from 'moment'
 
 const dotStyle: ViewStyle = {
     height: 10,
@@ -348,7 +349,7 @@ const CameraV2 = () => {
                     {loading ? <ActivityIndicator color={'white'} size={'large'} />
                         : <View style={styles.stopIcon} />}
                 </View>
-                <Text style={styles.durationText}>{duration}</Text>
+                <Text style={styles.durationText}>{moment.utc(duration * 1000).format('mm:ss')}</Text>
             </Pressable>
             {/* <Animated.View style={animatedStyle} />
             <Animated.View style={leftCheekAnimatedStyle} />
