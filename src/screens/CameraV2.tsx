@@ -1,9 +1,11 @@
-import { Dimensions, StyleSheet, Text, View, ViewStyle } from 'react-native'
-import React, { useEffect, useRef } from 'react'
-import { Camera, Face, FaceDetectionOptions } from 'react-native-vision-camera-face-detector'
+import { ActivityIndicator, Dimensions, Platform, Pressable, StyleSheet, Text, View, ViewStyle } from 'react-native'
+import React, { useEffect, useRef, useState } from 'react'
+import { Bounds, Camera, Face, FaceDetectionOptions } from 'react-native-vision-camera-face-detector'
 import { Camera as VisionCamera, Frame, useCameraDevice } from 'react-native-vision-camera'
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated'
 const { height: sh, width: sw } = Dimensions.get('screen');
+import mime from 'mime';
+
 const dotStyle: ViewStyle = {
     height: 10,
     width: 10,
@@ -11,13 +13,61 @@ const dotStyle: ViewStyle = {
     position: 'absolute',
     borderRadius: 10,
 }
+
+function calcFacePosition(bounds: Bounds, frame: Frame) {
+    const orientation = (() => {
+        switch (frame.orientation) {
+            case 'portrait':
+                return 0;
+            case 'landscape-left':
+                return 90;
+            case 'portrait-upside-down':
+                return 180;
+            case 'landscape-right':
+                return 270;
+        }
+    })();
+    const degrees = (orientation - 90 + 360) % 360;
+    let scaleX = 0;
+    let scaleY = 0;
+
+    if (Platform.OS !== 'ios' && (degrees === 90 || degrees === 270)) {
+        scaleX = sw / frame.height;
+        scaleY = sh / frame.width;
+    } else {
+        scaleX = sw / frame.width;
+        scaleY = sh / frame.height;
+    }
+
+    const faceW = bounds.width * scaleX;
+    const faceH = bounds.height * scaleY;
+    const faceX = (() => {
+        const xPos = bounds.x * scaleX;
+        if (Platform.OS === 'ios') {
+            return xPos;
+        }
+        return sw - (xPos + faceW); // invert X position on android
+    })();
+
+    return {
+        faceW,
+        faceH,
+        faceX,
+        faceY: bounds.y * scaleY,
+    };
+}
+
+
+let durationInterval: any;
+
 const CameraV2 = () => {
     const cameraDevice = useCameraDevice('front')
     const camera = useRef<VisionCamera>(null)
     const faceDetectionOptions = useRef<FaceDetectionOptions>({
-        performanceMode: 'fast',
+        performanceMode: 'accurate',
         classificationMode: 'all',
         landmarkMode: 'all',
+        autoScale: true
     }).current
 
     useEffect(() => {
@@ -127,56 +177,164 @@ const CameraV2 = () => {
     }))
 
     function handleFacesDetected(faces: Face[], frame: Frame): void {
-        if (faces.length > 0) {
-            console.log("🚀 ~ handleFacesDetected ~ faces:", faces[0].bounds)
-
-        }
-        const scaleX = sh / frame.height
-        const scaleY = sw / frame.width
         if (Object.keys(faces).length <= 0) return
+        // const scaleX = sh / frame.height
+        // const scaleY = sw / frame.width
         const { bounds } = faces[0]
         const { width, height, x, y } = bounds
-        faceWidth.value = width * scaleY
-        faceHeight.value = height * scaleX
-        faceX.value = x * scaleY
-        faceY.value = y * scaleX
+        faceWidth.value = width
+        faceHeight.value = height
+        faceX.value = x
+        faceY.value = y
 
-        leftCheekX.value = faces[0].landmarks.LEFT_CHEEK.x * scaleY
-        leftCheekY.value = faces[0].landmarks.LEFT_CHEEK.y * scaleX
+        leftCheekX.value = faces[0].landmarks.LEFT_CHEEK.x
+        leftCheekY.value = faces[0].landmarks.LEFT_CHEEK.y
 
-        leftEarX.value = faces[0].landmarks.LEFT_EAR.x * scaleY
-        leftEarY.value = faces[0].landmarks.LEFT_EAR.y * scaleX
+        leftEarX.value = faces[0].landmarks.LEFT_EAR.x
+        leftEarY.value = faces[0].landmarks.LEFT_EAR.y
 
-        leftEyeX.value = faces[0].landmarks.LEFT_EYE.x * scaleY
-        leftEyeY.value = faces[0].landmarks.LEFT_EYE.y * scaleX
+        leftEyeX.value = faces[0].landmarks.LEFT_EYE.x
+        leftEyeY.value = faces[0].landmarks.LEFT_EYE.y
 
-        mouthBottomX.value = faces[0].landmarks.MOUTH_BOTTOM.x * scaleY
-        mouthBottomY.value = faces[0].landmarks.MOUTH_BOTTOM.y * scaleX
+        mouthBottomX.value = faces[0].landmarks.MOUTH_BOTTOM.x
+        mouthBottomY.value = faces[0].landmarks.MOUTH_BOTTOM.y
 
-        mouthLeftX.value = faces[0].landmarks.MOUTH_LEFT.x * scaleY
-        mouthLeftY.value = faces[0].landmarks.MOUTH_LEFT.y * scaleX
+        mouthLeftX.value = faces[0].landmarks.MOUTH_LEFT.x
+        mouthLeftY.value = faces[0].landmarks.MOUTH_LEFT.y
 
-        mouthRightX.value = faces[0].landmarks.MOUTH_RIGHT.x * scaleY
-        mouthRightY.value = faces[0].landmarks.MOUTH_RIGHT.y * scaleX
+        mouthRightX.value = faces[0].landmarks.MOUTH_RIGHT.x
+        mouthRightY.value = faces[0].landmarks.MOUTH_RIGHT.y
 
-        noseBaseX.value = faces[0].landmarks.NOSE_BASE.x * scaleY
-        noseBaseY.value = faces[0].landmarks.NOSE_BASE.y * scaleX
+        noseBaseX.value = faces[0].landmarks.NOSE_BASE.x
+        noseBaseY.value = faces[0].landmarks.NOSE_BASE.y
 
-        rightCheekX.value = faces[0].landmarks.RIGHT_CHEEK.x * scaleY
-        rightCheekY.value = faces[0].landmarks.RIGHT_CHEEK.y * scaleX
+        rightCheekX.value = faces[0].landmarks.RIGHT_CHEEK.x
+        rightCheekY.value = faces[0].landmarks.RIGHT_CHEEK.y
 
-        rightEarX.value = faces[0].landmarks.RIGHT_EAR.x * scaleY
-        rightEarY.value = faces[0].landmarks.RIGHT_EAR.y * scaleX
+        rightEarX.value = faces[0].landmarks.RIGHT_EAR.x
+        rightEarY.value = faces[0].landmarks.RIGHT_EAR.y
 
-        rightEyeX.value = faces[0].landmarks.RIGHT_EYE.x * scaleY
-        rightEyeY.value = faces[0].landmarks.RIGHT_EYE.y * scaleX
+        rightEyeX.value = faces[0].landmarks.RIGHT_EYE.x
+        rightEyeY.value = faces[0].landmarks.RIGHT_EYE.y
     }
 
+    const [recording, setRecording] = useState(false);
+    const [duration, setDuration] = useState(0);
+    const durationRef = useRef(0);
+    const [loading, setLoading] = useState(false);
 
+    const onPress = () => {
+        if (camera.current) {
+            if (!recording) {
+                setRecording(true)
+                durationInterval = setInterval(() => {
+                    if (durationRef.current + 1 < 10) {
+                        setDuration(prev => {
+                            durationRef.current = prev + 1;
+                            return prev + 1
+                        })
+                    }
+                    else {
+                        camera.current?.stopRecording()
+                    }
+                }, 1000)
+                camera.current?.startRecording({
+                    onRecordingError(error) {
+                        setRecording(false)
+                        clearInterval(durationInterval)
+                    },
+                    async onRecordingFinished(video) {
+                        setRecording(false)
+                        setDuration(0)
+                        durationRef.current = 0;
+                        clearInterval(durationInterval)
+                        const formData = new FormData();
+                        const extName = video.path.split('.')[video.path.split('.').length - 1]
+                        console.log("🚀 ~ onRecordingFinished ~ video:", video)
+                        console.log("🚀 ~ onRecordingFinished ~ extName:", extName)
+                        // @ts-ignore
+                        formData.append('file', {
+                            uri: video.path ?? '',
+                            name: Date.now() + '.' + extName,
+                            type: mime.getType(video.path),
+                        });
+                        setLoading(true)
+                        try {
+                            const data = await fetch('http://192.168.29.157:3000/video', {
+                                method: 'post',
+                                body: formData,
+                            }).then(res => res.json())
+                            console.log(data);
+                        } catch (error) {
+                            console.log("🚀 ~ onRecordingFinished ~ error:", error)
+
+                        }
+                        setLoading(false)
+                    },
+                })
+            }
+            else {
+                camera.current?.stopRecording()
+            }
+        }
+    }
+
+    // const onVideo = useCallback(async () => {
+    //     if (!recording) {
+    //         setRecording(true)
+    //         durationInterval = setInterval(() => {
+    //             if (durationRef.current + 1 < 61) {
+    //                 setDuration((oldDuration) => {
+    //                     let mzminutes = Math.floor((oldDuration.duration + 1) / 60);
+    //                     let mzseconds = Math.floor((oldDuration.duration + 1) - (mzminutes * 60));
+    //                     let display = (mzminutes < 10 ? '0' : '') + mzminutes + ':' + (mzseconds < 10 ? '0' : '') + mzseconds;
+    //                     durationRef.current = oldDuration.duration + 1
+    //                     return {
+    //                         display,
+    //                         duration: oldDuration.duration + 1
+    //                     }
+    //                 })
+    //             }
+    //             else {
+    //                 camera.current?.stopRecording()
+    //             }
+    //         }, 1000);
+    //         logEvent(analyticsEvents.camera.pressEvents.startVideo, { userId: user?.userId });
+    //         camera.current?.startRecording({
+    //             // videoCodec: 'h264',
+    //             onRecordingError(error) {
+    //                 setRecording(false)
+    //                 clearInterval(durationInterval)
+    //             },
+    //             async onRecordingFinished(video) {
+    //                 const timestamp = Date.now()
+    //                 setRecording(false)
+    //                 setCapturing(true)
+    //                 clearInterval(durationInterval)
+    //                 const thumbnailCommand = ` -i ${video.path} -vframes 1 -an -ss 0 ${CachesDirectoryPath}/${timestamp}thumbnail.jpg`
+    //                 await ffmpegRun(thumbnailCommand)
+    //                 const uriSmall = `file://${CachesDirectoryPath}/${timestamp}thumbnail.jpg`
+    //                 setTimeout(() => {
+    //                     setCapturing(false)
+    //                     setDuration({
+    //                         duration: 0,
+    //                         display: '00:00'
+    //                     })
+    //                     navigation.replace('EditVideo', { uri: video.path, showCaseImage: uriSmall, duration: video.duration })
+    //                     logEvent(analyticsEvents.camera.submitEvents.videoEdit, { userId: user?.userId });
+    //                 }, 100)
+    //             },
+    //         })
+    //     }
+    //     else {
+    //         camera.current?.stopRecording()
+    //     }
+    // }, [recording])
     return (
         <>
             {cameraDevice && <Camera
                 ref={camera}
+                video
                 style={StyleSheet.absoluteFill}
                 isActive={true}
                 device={cameraDevice}
@@ -185,8 +343,14 @@ const CameraV2 = () => {
                     ...faceDetectionOptions,
                 }}
             />}
-
-            <Animated.View style={animatedStyle} />
+            <Pressable style={styles.container} onPress={onPress}>
+                <View style={[styles.playPauseBtn, recording && styles.recording]}>
+                    {loading ? <ActivityIndicator color={'white'} size={'large'} />
+                        : <View style={styles.stopIcon} />}
+                </View>
+                <Text style={styles.durationText}>{duration}</Text>
+            </Pressable>
+            {/* <Animated.View style={animatedStyle} />
             <Animated.View style={leftCheekAnimatedStyle} />
             <Animated.View style={leftEarAnimatedStyle} />
             <Animated.View style={leftEyeAnimatedStyle} />
@@ -196,11 +360,44 @@ const CameraV2 = () => {
             <Animated.View style={noseBaseAnimatedStyle} />
             <Animated.View style={rightCheekAnimatedStyle} />
             <Animated.View style={rightEarAnimatedStyle} />
-            <Animated.View style={rightEyeAnimatedStyle} />
+            <Animated.View style={rightEyeAnimatedStyle} /> */}
         </>
     )
 }
 
 export default CameraV2
 
-const styles = StyleSheet.create({})
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+    },
+    playPauseBtn: {
+        height: sw * 0.19,
+        width: sw * 0.19,
+        bottom: sw * 0.1,
+        borderWidth: 6,
+        borderColor: 'white',
+        borderRadius: 100,
+        backgroundColor: 'red',
+        position: 'absolute',
+        alignSelf: 'center',
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    recording: {
+        backgroundColor: 'transparent',
+    },
+    stopIcon: {
+        backgroundColor: 'red',
+        height: '50%',
+        width: '50%',
+    },
+    durationText: {
+        fontSize: 20,
+        color: 'white',
+        alignSelf: 'center',
+        position: 'absolute',
+        bottom: sw * 0.165,
+        right: sw * 0.2
+    }
+})
