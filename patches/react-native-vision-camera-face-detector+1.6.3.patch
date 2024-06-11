@@ -1,0 +1,105 @@
+diff --git a/node_modules/react-native-vision-camera-face-detector/android/src/main/java/com/visioncamerafacedetector/VisionCameraFaceDetectorPlugin.kt b/node_modules/react-native-vision-camera-face-detector/android/src/main/java/com/visioncamerafacedetector/VisionCameraFaceDetectorPlugin.kt
+index 6466b64..ebc3b62 100644
+--- a/node_modules/react-native-vision-camera-face-detector/android/src/main/java/com/visioncamerafacedetector/VisionCameraFaceDetectorPlugin.kt
++++ b/node_modules/react-native-vision-camera-face-detector/android/src/main/java/com/visioncamerafacedetector/VisionCameraFaceDetectorPlugin.kt
+@@ -99,7 +99,6 @@ class VisionCameraFaceDetectorPlugin(
+     val bounds: MutableMap<String, Any> = HashMap()
+     val width = boundingBox.width().toDouble() * scaleX
+     val x = boundingBox.left.toDouble() * scaleX
+-
+     bounds["width"] = width
+     bounds["height"] = boundingBox.height().toDouble() * scaleY
+     bounds["x"] = (-x + sourceWidth * scaleX) - width
+@@ -111,7 +110,8 @@ class VisionCameraFaceDetectorPlugin(
+   private fun processLandmarks(
+     face: Face,
+     scaleX: Double,
+-    scaleY: Double
++    scaleY: Double,
++    sourceWidth: Double,
+   ): Map<String, Any> {
+     val faceLandmarksTypes = intArrayOf(
+       FaceLandmark.LEFT_CHEEK,
+@@ -141,20 +141,24 @@ class VisionCameraFaceDetectorPlugin(
+     for (i in faceLandmarksTypesStrings.indices) {
+       val landmark = face.getLandmark(faceLandmarksTypes[i])
+       val landmarkName = faceLandmarksTypesStrings[i]
+-      Log.d(
+-        TAG,
+-        "Getting '$landmarkName' landmark"
+-      )
++//      Log.d(
++//        TAG,
++//        "Getting '$landmarkName' landmark"
++//      )
+       if (landmark == null) {
+-        Log.d(
+-          TAG,
+-          "Landmark '$landmarkName' is null - going next"
+-        )
++//        Log.d(
++//          TAG,
++//          "Landmark '$landmarkName' is null - going next"
++//        )
+         continue
+       }
+       val point = landmark.position
+       val currentPointsMap: MutableMap<String, Double> = HashMap()
+-      currentPointsMap["x"] = point.x.toDouble() * scaleX
++//      currentPointsMap["x"] = point.x.toDouble() * scaleX
++      val width = face.boundingBox.width().toDouble() * scaleX
++//      val x = boundingBox.left.toDouble() * scaleX
++      val x = point.x.toDouble() * scaleX
++      currentPointsMap["x"] = (-x + sourceWidth * scaleX)
+       currentPointsMap["y"] = point.y.toDouble() * scaleY
+       faceLandmarksTypesMap[landmarkName] = currentPointsMap
+     }
+@@ -205,15 +209,15 @@ class VisionCameraFaceDetectorPlugin(
+     for (i in faceContoursTypesStrings.indices) {
+       val contour = face.getContour(faceContoursTypes[i])
+       val contourName = faceContoursTypesStrings[i]
+-      Log.d(
+-        TAG,
+-        "Getting '$contourName' contour"
+-      )
++//      Log.d(
++//        TAG,
++//        "Getting '$contourName' contour"
++//      )
+       if (contour == null) {
+-        Log.d(
+-          TAG,
+-          "Face contour '$contourName' is null - going next"
+-        )
++//        Log.d(
++//          TAG,
++//          "Face contour '$contourName' is null - going next"
++//        )
+         continue
+       }
+       val points = contour.points
+@@ -273,7 +277,8 @@ class VisionCameraFaceDetectorPlugin(
+           map["landmarks"] = processLandmarks(
+             face,
+             scaleX,
+-            scaleY
++            scaleY,
++            sourceWidth
+           )
+         }
+ 
+diff --git a/node_modules/react-native-vision-camera-face-detector/ios/VisionCameraFaceDetector.swift b/node_modules/react-native-vision-camera-face-detector/ios/VisionCameraFaceDetector.swift
+index 0f2807e..a691971 100644
+--- a/node_modules/react-native-vision-camera-face-detector/ios/VisionCameraFaceDetector.swift
++++ b/node_modules/react-native-vision-camera-face-detector/ios/VisionCameraFaceDetector.swift
+@@ -138,8 +138,8 @@ public class VisionCameraFaceDetector: FrameProcessorPlugin {
+     for i in 0..<faceLandmarkTypes.count {
+       let landmark = face.landmark(ofType: faceLandmarkTypes[i]);
+       let position = [
+-        "x": landmark?.position.x ?? 0.0 * scaleX,
+-        "y": landmark?.position.y ?? 0.0 * scaleY
++        "x": (landmark?.position.x ?? 0.0) * scaleX,
++        "y": (landmark?.position.y ?? 0.0) * scaleY
+       ]
+       faceLandMarksTypesMap[faceLandmarksTypesStrings[i]] = position
+     }
