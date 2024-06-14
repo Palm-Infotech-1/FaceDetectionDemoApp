@@ -9,7 +9,6 @@ For iOS, install pods by navigating to iOS folder,
 ```sh
 cd ios && pod install
 ```
-
 To run in android,
 ```sh
 npm run android

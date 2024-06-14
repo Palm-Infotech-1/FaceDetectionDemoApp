@@ -6,7 +6,9 @@
     "start": "expo start",
     "android": "expo run:android",
     "ios": "expo run:ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "build:ios_dev": "react-native bundle --entry-file ./index.js --platform ios --bundle-output ios/main.jsbundle --assets-dest ios"
+  
   },
   "dependencies": {
     "@shopify/react-native-skia": "0.1.221",
@@ -27,6 +29,7 @@
   "devDependencies": {
     "@babel/core": "^7.20.0",
     "@types/react": "~18.2.45",
+    "metro-config": "^0.80.9",
     "typescript": "^5.4.5"
   },
   "private": true

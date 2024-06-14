@@ -347,7 +347,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = FaceDetectionDemoApp/FaceDetectionDemoApp.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 8VFG9C7239;
+				DEVELOPMENT_TEAM = K338634BH8;
 				ENABLE_BITCODE = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
@@ -366,7 +366,7 @@
 					"-lc++",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
-				PRODUCT_BUNDLE_IDENTIFIER = com.anonymous.FaceDetectionDemoApptest;
+				PRODUCT_BUNDLE_IDENTIFIER = com.rdpfoam.sleepguardian;
 				PRODUCT_NAME = FaceDetectionDemoApp;
 				SWIFT_OBJC_BRIDGING_HEADER = "FaceDetectionDemoApp/FaceDetectionDemoApp-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -384,7 +384,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = FaceDetectionDemoApp/FaceDetectionDemoApp.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 8VFG9C7239;
+				DEVELOPMENT_TEAM = K338634BH8;
 				INFOPLIST_FILE = FaceDetectionDemoApp/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.4;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -398,7 +398,7 @@
 					"-lc++",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
-				PRODUCT_BUNDLE_IDENTIFIER = com.anonymous.FaceDetectionDemoApptest;
+				PRODUCT_BUNDLE_IDENTIFIER = com.rdpfoam.sleepguardian;
 				PRODUCT_NAME = FaceDetectionDemoApp;
 				SWIFT_OBJC_BRIDGING_HEADER = "FaceDetectionDemoApp/FaceDetectionDemoApp-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
@@ -467,7 +467,8 @@
 				OTHER_CPLUSPLUSFLAGS = "$(inherited)";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
-					" ",
+					"-Wl",
+					"-ld_classic",
 				);
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
@@ -527,7 +528,8 @@
 				OTHER_CPLUSPLUSFLAGS = "$(inherited)";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
-					" ",
+					"-Wl",
+					"-ld_classic",
 				);
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
